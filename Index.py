@@ -14,6 +14,5 @@ class Index:
         date_pre_processing = DataPreProcessing()
         vectorizer = TfidfVectorizer(preprocessor=date_pre_processing.process_text, tokenizer=custom_tokenizer,
                                      stop_words='english')
-        c = CountVectorizer()
         tfidf_matrix = vectorizer.fit_transform(documents['text'])
-        return tfidf_matrix
+        return vectorizer, tfidf_matrix
