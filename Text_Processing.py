@@ -11,20 +11,22 @@ from nltk import pos_tag
 
 class DataPreProcessing:
     custom_words = {
-        'isnt', 'arent', 'im', 'id', 'ie', 'eg', 'ive', 'whatev', 'wed', 'somehow',
-        'going', 'get', 'yes', 'no', 'couldnt', 'didnt', 'dont', 'doesnt', 'would',
-        'could', 'should', 'cant', 'wont', 'hasnt', 'hadnt', 'havent', 'mightnt',
-        'mustnt', 'neednt', 'shall', 'shant', 'werent', 'wouldnt', 'ought', 'oughtnt',
-        'aint', 'gonna', 'wanna', 'whatcha', 'yall', 'ya', 'gotta', 'coulda', 'shoulda',
-        'woulda', 'lotta', 'lemme', 'kinda', 'sorta', 'hafta', 'dunno', 'outta', 'alot',
-        'yup', 'nope', 'nah', 'yeah', 'uh', 'um', 'uhm', 'okay', 'ok', 'yep', 'hmm',
-        'mmm', 'oh', 'hey', 'hi', 'hello', 'bye', 'goodbye', 'please', 'thanks', 'thank',
-        'welcome', 'etc', 'alright', 'okay', 'ok', 'gonna', 'gotta', 'wanna', 'kinda',
-        'sorta', 'lemme', 'coulda', 'shoulda', 'woulda', 'whereby', 'many', 'much', 'want'
+    'isnt', 'arent', 'im', 'id', 'ie', 'eg', 'ive', 'whatev', 'wed', 'somehow',
+    'going', 'get', 'yes', 'no', 'couldnt', 'didnt', 'dont', 'doesnt', 'would',
+    'could', 'should', 'cant', 'wont', 'hasnt', 'hadnt', 'havent', 'mightnt',
+    'mustnt', 'neednt', 'shall', 'shant', 'werent', 'wouldnt', 'ought', 'oughtnt',
+    'aint', 'gonna', 'wanna', 'whatcha', 'yall', 'ya', 'gotta', 'coulda', 'shoulda',
+    'woulda', 'lotta', 'lemme', 'kinda', 'sorta', 'hafta', 'dunno', 'outta', 'alot',
+    'yup', 'nope', 'nah', 'yeah', 'uh', 'um', 'uhm', 'okay', 'ok', 'yep', 'hmm',
+    'mmm', 'oh', 'hey', 'hi', 'hello', 'bye', 'goodbye', 'please', 'thanks', 'thank',
+    'welcome', 'etc', 'alright', 'okay', 'ok', 'gonna', 'gotta', 'wanna', 'kinda',
+    'sorta', 'lemme', 'coulda', 'shoulda', 'woulda', 'whereby', 'many', 'much', 'want',
+    'always'
     }
     stop_words = set(stopwords.words('english')).union(custom_words)
     lemmatizer = WordNetLemmatizer()
     stemmer = PorterStemmer()
+
 
     @staticmethod
     def remove_urls(text):
@@ -36,46 +38,23 @@ class DataPreProcessing:
         filtered_text = ''.join(char if char in allowed_chars else '' for char in text)
         return filtered_text
 
-    @staticmethod
-    def remove_punctuation(text):
-        text = re.sub(r'\d+', ' ', text)
-        translator = str.maketrans({char: ' ' if char != '&' else '' for char in string.punctuation})
-        no_punct = text.translate(translator)
-        clean_text = re.sub(r'\s+', ' ', no_punct).strip()
-        return clean_text
+    def remove_punctuation_and_numbers(tokens):
+      # Create a translation table to remove punctuation and numbers
+      translator = str.maketrans({char: ' ' if char not in '&0123456789' else '' for char in string.punctuation + string.digits})
 
-    # def replace_abbreviation(text):
-    #     new_text = []
-    #     for i in text.split():
-    #         if i.upper() in DataPreProcessing.abbreviations:
-    #             new_text.append(DataPreProcessing.abbreviations[i.upper()])
-    #         else:
-    #             new_text.append(i)
-    #     return " ".join(new_text)
+      # Process each token individually
+      cleaned_tokens = []
+      for token in tokens:
+        no_punct_or_nums = token.translate(translator)
+        clean_token = re.sub(r'\s+', ' ', no_punct_or_nums).strip()
+        if clean_token:  # Avoid adding empty strings
+          cleaned_tokens.append(clean_token)
+      return cleaned_tokens
+
 
     @staticmethod
     def toLowercase(text):
         return text.lower()
-
-    @staticmethod
-    def contains_emoji(text):
-        emoji_pattern = re.compile(
-            "["
-            "\U0001F600-\U0001F64F"  # emoticons
-            "\U0001F300-\U0001F5FF"  # symbols & pictographs
-            "\U0001F680-\U0001F6FF"  # transport & map symbols
-            "\U0001F1E0-\U0001F1FF"  # flags (iOS)
-            "\U00002702-\U000027B0"  # other miscellaneous symbols
-            "\U000024C2-\U0001F251"
-            "]+", flags=re.UNICODE)
-        return bool(emoji_pattern.search(text))
-
-    @staticmethod
-    def any_text_contains_emoji(docs):
-        for text in docs['text']:
-            if DataPreProcessing.contains_emoji(text):
-                return True
-        return False
 
     @staticmethod
     def fix_repeated_chars(text):
@@ -146,15 +125,9 @@ class DataPreProcessing:
 
     @staticmethod
     def process_text(text):
-        text = DataPreProcessing.remove_urls(text)
-        text = DataPreProcessing.remove_non_english_chars(text)
-        text = DataPreProcessing.remove_time(text)
-        text = DataPreProcessing.remove_punctuation(text)
         text = DataPreProcessing.toLowercase(text)
-        text = DataPreProcessing.fix_repeated_chars(text)
-        text = DataPreProcessing.remove_words_start_with_duplicate_chars(text)
         tokens = DataPreProcessing.tokenize_text(text)
         tokens = DataPreProcessing.remove_stopwords(tokens)
-        tokens = DataPreProcessing.remove_duplicated_chars(tokens)
+        tokens = DataPreProcessing.remove_punctuation_and_numbers(tokens)
         tokens = DataPreProcessing.stem_tokens(tokens)
         return ' '.join(tokens)

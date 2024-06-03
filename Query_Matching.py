@@ -6,8 +6,8 @@ import pandas as pd
 
 
 class Query_Matching:
-    def matching_query_documents(self, query, vectorizer, tfidf_matrix):
-        query_vector = vectorizer.transform([query])
+    def matching_query_documents(self, queries, vectorizer, tfidf_matrix):
+        query_vector = vectorizer.transform(queries['text'])
 
         cosine_similarities = cosine_similarity(query_vector, tfidf_matrix)
         df_similarity = pd.DataFrame(cosine_similarities)
