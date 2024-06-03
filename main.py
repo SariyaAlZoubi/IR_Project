@@ -33,5 +33,6 @@ class Main:
         rank = Ranking()
 
         top_10_similarities = rank.get_top_n_similarities(df_similarity)
-        result = document.docs(top_10_similarities)
+        result = document.fetch_documents(top_10_similarities, request.dataSet)
         return result
+
