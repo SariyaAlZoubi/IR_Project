@@ -7,12 +7,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 class Index:
     def indexing(self, documents):
-        def custom_tokenizer(text):
-            tokens = word_tokenize(text)
-            return tokens
-
         date_pre_processing = DataPreProcessing()
-        vectorizer = TfidfVectorizer(preprocessor=date_pre_processing.process_text, tokenizer=custom_tokenizer,
-                                     stop_words='english')
+        vectorizer = TfidfVectorizer(preprocessor=date_pre_processing.process_text, max_features=25000)
         tfidf_matrix = vectorizer.fit_transform(documents['text'])
         return vectorizer, tfidf_matrix

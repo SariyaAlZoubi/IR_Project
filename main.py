@@ -1,22 +1,37 @@
+import pickle
+
 import ir_datasets
 import pandas as pd
 from Index import Index
 from Query_Matching import Query_Matching
 from Ranking import Ranking
-dataset = ir_datasets.load("lotte/lifestyle/dev/forum")
-docs = pd.DataFrame(dataset.docs_iter())
-documents = docs[:1000]
+from documents import Documents
 
 
-index = Index()
-vectorizer, tfidf_matrix = index.indexing(documents)
+class Main:
 
-query = "SSSSSSsssS"
+    def run(self, request):
+        document = Documents()
 
-queryMatching = Query_Matching()
+        if request.dataSet == "lifeStyle":
+            with open('tfidf_matrix_lifestyle.pkl', 'rb') as file:
+                tfidf_matrix = pickle.load(file)
 
-df_similarity = queryMatching.matching_query_documents(query,vectorizer,tfidf_matrix)
+            with open('vectorizer_lifestyle.pkl', 'rb') as file:
+                vectorizer = pickle.load(file)
+        else:
+            with open('tfidf_matrix_recreation.pkl', 'rb') as file:
+                tfidf_matrix = pickle.load(file)
 
-rank = Ranking()
+            with open('vectorizer_recreation.pkl', 'rb') as file:
+                vectorizer = pickle.load(file)
 
-top_n_df = rank.get_top_n_similarities(df_similarity)
+        queryMatching = Query_Matching()
+
+        df_similarity = queryMatching.matching_query_documents(request.query, vectorizer, tfidf_matrix)
+
+        rank = Ranking()
+
+        top_10_similarities = rank.get_top_n_similarities(df_similarity)
+        result = document.docs(top_10_similarities)
+        return result
